@@ -8,12 +8,15 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String args[]) throws TelegramApiRequestException, IOException {
+        //Соединяемся с API
         ApiContextInitializer.init();
         TelegramBotsApi telegram = new TelegramBotsApi();
+        //Запускаем Бота
         telegram.registerBot(new Bot());
 
-        SoapResponse soapResponse = new SoapResponse();
-        System.out.println(soapResponse.requestAndResponse("A","","A"));
+        //Тестовый запрос
+        //SoapResponse soapResponse = new SoapResponse();
+        //System.out.println(soapResponse.requestAndResponse("A","","A"));
     }
 }
 
