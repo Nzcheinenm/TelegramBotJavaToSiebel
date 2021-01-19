@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.2
  * 
  */
-@WebServiceClient(name = "MTS_spcWebService", targetNamespace = "http://siebel.com/CustomUI", wsdlLocation = "file:/C:/Users/Administrator/Desktop/ASiebelWSTelegram.WSDL")
+@WebServiceClient(name = "MTS_spcWebService", targetNamespace = "http://siebel.com/CustomUI", wsdlLocation = "file:/C:/ASiebelWSTelegram.WSDL")
 public class MTSSpcWebService_Service
     extends Service
 {
@@ -30,7 +30,7 @@ public class MTSSpcWebService_Service
         URL url = null;
         WebServiceException e = null;
         try {
-            url = new URL("file:/C:/Users/Administrator/Desktop/ASiebelWSTelegram.WSDL");
+            url = new URL("file:/C:/ASiebelWSTelegram.WSDL");
         } catch (MalformedURLException ex) {
             e = new WebServiceException(ex);
         }

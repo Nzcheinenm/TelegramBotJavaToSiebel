@@ -24,6 +24,7 @@ public class SoapResponse {
     // SAAJ - SOAP Client Testing
     public String requestAndResponse(String firstName, String middleName, String lastName) throws IOException {
         String outString;
+
         //Создаем экземпляер сервиса Сибель
         MTSSpcWebService_Service helloService = new MTSSpcWebService_Service();
         //Реализуем интерфейс взаимодействия

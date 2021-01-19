@@ -13,23 +13,27 @@ import java.io.IOException;
 
 public class Bot extends TelegramLongPollingBot {
 
-    private String firstName;
+    private String accountName;
     private String lastName;
     private String middleName = "";
+    private String loginFirstName;
+    private String loginLastName;
     public static boolean isNullResponse;
+    private boolean logIn = false;
 
     public void onUpdateReceived(Update update) {
         long chat_id;
         String msgGet;
+
         String[] msgArr;
 
         //Обновляем Id интеграции с Телеграм
         update.getUpdateId();
         //Смотрим что именно в этом чате наше сообщение
         SendMessage sendMessage = new SendMessage().setChatId(update.getMessage().getChatId());
-        //Принимаем инфо
+        //Принимаем сообщение пользователя
         msgGet = update.getMessage().getText();
-
+        //Получаем Id Чата
         chat_id = update.getMessage().getChatId();
 
         try {
@@ -38,75 +42,60 @@ public class Bot extends TelegramLongPollingBot {
             switch (msgArr[0]) {
                 case "/start":
                 case "/help":
-                    execute(sendMessage.setText("Для ввода данных введите:\n Фамилия,<Ваша Фамилия>" +
-                            "\n Имя,<Ваше Имя>" +
-                            "\n Отчество,<Ваше Отчество>" +
+                    execute(sendMessage.setText("Для ввода данных введите без пробела:\n Название,<Ваше Название>" +
                             "\n Для отправки в Siebel - /send" +
                             "\n для справки- /lastname , /firstname, /middlename" +
-                            "\n тестовые данные - Иван Иванов Иванович"));
+                            "\n тестовые данные - OZON"));
                     break;
                 case "Hi":
                 case "Привет":
                 case "привет":
                 case "хай":
+                    System.out.println(update.getMessage());
                     execute(sendMessage.setText("Приветос!"));
+                    System.out.println("Привет");
                     break;
-                case "/siebel":
-                    execute(sendMessage.setText("Siebel is not work"));
+                case "/name":
+                    execute(sendMessage.setText("Введите - Название,<Ваше Название>"));
+                    System.out.println("/name");
                     break;
-                case "/lastname":
-                    execute(sendMessage.setText("Введите - Фамилия,<Ваша Фамилия>"));
-                    break;
-                case "Фамилия":
+                case "Название":
                     try {
-                        lastName = msgArr[1];
-                        execute(sendMessage.setText("Введена Фамилия - " + lastName));
+                        accountName = msgArr[1];
+                        execute(sendMessage.setText("Введено Название - " + accountName));
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        execute(sendMessage.setText("Не Введена Фамилия "));
+                        execute(sendMessage.setText("Не Введено Название "));
                     }
+                    System.out.println("Название");
                     break;
-                case "/fistname":
-                    execute(sendMessage.setText("Введите - Имя,<Ваше Имя>"));
-                    break;
-                case "Имя":
-                    try {
-                        firstName = msgArr[1];
-                        execute(sendMessage.setText("Введено Имя - " + firstName));
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        execute(sendMessage.setText("Не Введена Фамилия "));
-                    }
-                    break;
-                case "/middlename":
-                    execute(sendMessage.setText("Введите - Отчество,<Ваше Отчество>"));
-                    break;
-                case "Отчество":
-                    try {
-                        middleName = msgArr[1];
-                        execute(sendMessage.setText("Введено Отчество - " + middleName));
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        execute(sendMessage.setText("Не Введена Фамилия "));
-                    }
-                    break;
-                case "/fio":
-                    execute(sendMessage.setText(lastName + " " + firstName + " " + middleName));
+                case "/login":
+                    loginFirstName = update.getMessage().getFrom().getFirstName();
+                    loginLastName = update.getMessage().getFrom().getLastName();
+                    System.out.println(loginFirstName + " " + loginLastName);
+                    logIn = ConectToSiebel.Login(loginFirstName,loginLastName);
+                    if(logIn) {
+                        execute(sendMessage.setText("Вход в Siebel произведен "));
+                        System.out.println(logIn);
+                    } else {execute(sendMessage.setText("Вход в Siebel не произведен. Обратитесь к администратору Siebel"));}
+                    System.out.println("Login to Siebel");
                     break;
                 case "/send":
-                    if (firstName == null || lastName == null) {
-                        if (firstName == null) {
-                            execute(sendMessage.setText("Имя не введенo."));
+                    if(logIn) {
+                        System.out.println("Send " + accountName);
+                        if (accountName == null ) {
+                            execute(sendMessage.setText("Название не введено."));
                             break;
                         }
-                        execute(sendMessage.setText("Фамилия не введенa."));
-                        break;
-                    }
-                    //Ждем ответ, как получили, отправляем информацию
-                    execute(sendMessage.setText(sendSiebelMessage(firstName, middleName, lastName)));
-                    if (isNullResponse) {
-                        execute(sendMessage.setText("Нет такого Контакта, либо данные введены не верно"));
-                    }
+                        //Ждем ответ, как получили, отправляем информацию
+                        if (isNullResponse) {
+                            execute(sendMessage.setText("Нет такого Контакта, либо данные введены не верно"));
+                        } else {execute(sendMessage.setText(sendSiebelMessage(accountName)));}
+                    } else {execute(sendMessage.setText("Вход в Siebel не произведен. Пожалуйста, авторизуйтесь"));}
+
                     break;
                 default:
                     execute(sendMessage.setText("Такой команды не имею( \n Для справки /help"));
+                    System.out.println("Default");
                     break;
             }
         } catch (TelegramApiException | IOException e) {
@@ -115,9 +104,13 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     //Класс для отправки и получения сообщения в Сибель
-    public String sendSiebelMessage(String first, String middle, String last) throws IOException {
-        SoapResponse soapResponse = new SoapResponse();
-        return soapResponse.requestAndResponse(first, middle, last);
+    public String sendSiebelMessage(String first) throws IOException {
+        String conect;
+        conect = ConectToSiebel.infoAccount(accountName,accountName);
+        System.out.println(conect);
+        if(conect == null) {isNullResponse = true;
+        return null;}
+        else {return conect;}
     }
 
     //Имя бота
@@ -127,6 +120,6 @@ public class Bot extends TelegramLongPollingBot {
 
     //Токкен бота
     public String getBotToken() {
-        return "";
+        return "1394774401:AAGKUeskHCov4ecTxWIcLG09fEPuz-u4cz0";
     }
 }
