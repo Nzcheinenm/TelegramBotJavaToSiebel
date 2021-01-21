@@ -106,7 +106,7 @@ public class Bot extends TelegramLongPollingBot {
     //Класс для отправки и получения сообщения в Сибель
     public String sendSiebelMessage(String first) throws IOException {
         String conect;
-        conect = ConectToSiebel.infoAccount(accountName,accountName);
+        conect = ConectToSiebel.infoAccount(accountName,ConectToSiebel.userName);
         System.out.println(conect);
         if(conect == null) {isNullResponse = true;
         return null;}

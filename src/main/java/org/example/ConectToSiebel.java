@@ -1,6 +1,7 @@
 package org.example;
 
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
@@ -13,6 +14,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public class ConectToSiebel {
+    static String userName;
     // Авторизуемся в системе
     public static boolean Login(String firstNameBot, String lastNameBot) throws IOException {
         int statusCode;
@@ -20,7 +22,6 @@ public class ConectToSiebel {
         String rowId;
         String lastName;
         String firstName;
-        String userName;
 
         final Request postResult = Request.Post("http://localhost:9001/siebel-rest/v1.0/service/Siebel%20Employee/QueryByExample?PageSize=2&ViewMode=All");
 
@@ -62,11 +63,14 @@ public class ConectToSiebel {
 
 
     // Запрашиваем информацию по Клиенту
-    public static String infoAccount(String accountNameBot, String firstNameBot) throws IOException {
+    public static String infoAccount(String accountNameBot, String userLogin) throws IOException {
         int statusCode;
         String result;
 
         final Request postResult = Request.Post("http://localhost:9001/siebel-rest/v1.0/service/Siebel%20Account/QueryByExample?PageSize=2&ViewMode=All");
+
+        byte[] credentials = Base64.encodeBase64((userLogin + ":" + "SIEBEL").getBytes(StandardCharsets.UTF_8));
+        System.out.println(new String(credentials, StandardCharsets.UTF_8));
 
         postResult.bodyString("{\n" +
                 "  \"body\":{\n" +
@@ -81,7 +85,7 @@ public class ConectToSiebel {
                 "        }\n" +
                 "     }\n" +
                 "   }\n" +
-                "}", ContentType.APPLICATION_JSON).addHeader("Authorization", "Basic U0FETUlOOlNJRUJFTA==");
+                "}", ContentType.APPLICATION_JSON).addHeader("Authorization", "Basic " + new String(credentials, StandardCharsets.UTF_8));
         System.out.println(postResult.execute().returnContent().asString(StandardCharsets.UTF_8));
         HttpResponse response = postResult.execute().returnResponse();
 
