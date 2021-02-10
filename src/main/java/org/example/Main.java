@@ -14,9 +14,7 @@ public class Main {
         //Запускаем Бота
         telegram.registerBot(new Bot());
 
-        //Тестовый запрос
-        //SoapResponse soapResponse = new SoapResponse();
-        //System.out.println(soapResponse.requestAndResponse("A","","A"));
+
     }
 }
 
